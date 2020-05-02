@@ -1,4 +1,4 @@
-<% title @article.title %>
+<% title sanitize_and_decode @article.title %>
 
 <%= render "shared/webcomponents_loader_script" %>
 <%= javascript_packs_with_chunks_tag "clipboardCopy", "webShare", defer: true %>
@@ -115,7 +115,7 @@
           </a>
         <% end %>
         <h1 class="<%= @article.title_length_classification %>">
-          <%= @article.title %>
+          <%= sanitize_and_decode @article.title %>
         </h1>
         <h3>
           <span>

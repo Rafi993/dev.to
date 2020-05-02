@@ -220,4 +220,8 @@ module ApplicationHelper
   def sanitized_referer(referer)
     URL.sanitized_referer(referer)
   end
+
+  def sanitize_and_decode(str)
+    HTMLEntities.new.decode(sanitize(str).to_s)
+  end
 end
