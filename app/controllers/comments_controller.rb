@@ -221,7 +221,12 @@ class CommentsController < ApplicationController
     authorize @comment
     @comment.hidden_by_commentable_user = true
     @comment&.commentable&.update_column(:any_comments_hidden, true)
-    if @comment.save
+
+    # Hide notification related to that comment
+    @comment_notification = Notification.find_by(notifiable_type: "Comment", user_id: current_user.id, notifiable_id: params[:comment_id])
+    @comment_notification.hidden = true
+
+    if @comment.save && @comment_notification.save
       render json: { hidden: "true" }, status: :ok
     else
       render json: { errors: @comment.errors_as_sentence, status: 422 }, status: :unprocessable_entity
@@ -232,7 +237,12 @@ class CommentsController < ApplicationController
     @comment = Comment.find(params[:comment_id])
     authorize @comment
     @comment.hidden_by_commentable_user = false
-    if @comment.save
+
+    # unhide notification related to that comment
+    @comment_notification = Notification.find_by(notifiable_type: "Comment", user_id: current_user.id, notifiable_id: params[:comment_id])
+    @comment_notification.hidden = false
+
+    if @comment.save && @comment_notification.save
       @commentable = @comment&.commentable
       @commentable&.update_column(:any_comments_hidden, @commentable.comments.pluck(:hidden_by_commentable_user).include?(true))
       render json: { hidden: "false" }, status: :ok
