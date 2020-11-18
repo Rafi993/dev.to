@@ -90,7 +90,10 @@ export function performInitialSearch({ searchOptions = {} }) {
 }
 
 // Main search function
-export function search(query, { page, tags, statusView, appendItems = false }) {
+export function search(
+  query,
+  { page, tags, statusView, sortBy, sortDirection, appendItems = false },
+) {
   const component = this;
 
   // allow the page number to come from the calling function
@@ -112,6 +115,11 @@ export function search(query, { page, tags, statusView, appendItems = false }) {
 
   if (statusView) {
     dataHash.status = statusView.split(',');
+  }
+
+  if (sortBy && sortDirection) {
+    dataHash.sort_by = sortBy;
+    dataHash.sort_direction = sortDirection;
   }
 
   const responsePromise = fetchSearch('reactions', dataHash);

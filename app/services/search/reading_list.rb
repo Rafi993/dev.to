@@ -42,11 +42,12 @@ module Search
       # tags, text search, status, and the list of IDs of all articles in a user's
       # reading list
       docs = FeedContent.search_documents(
-        params: search_params.merge(
+        # prevent sorting in elastic search since sorting in ActiveRecord
+        params: search_params.except(:sort_by, :sort_direction).merge(
           id: search_ids,
           class_name: "Article",
           page: 0,
-          per_page: reading_list_article_ids.count,
+          per_page: reading_list_article_ids.size,
         ),
       )
       self.total = docs.count
@@ -54,17 +55,27 @@ module Search
     end
 
     def reading_list_article_ids
+      sort_order = {}
+      sort_order[search_params[:sort_by]] = search_params[:sort_direction]
+
+      puts "****************************"
+      puts sort_order
+      puts "****************************"
+
       # Collect all reading list IDs and article IDs for a user
-      @reading_list_article_ids ||= user.reactions.readinglist.where(status: status).order(id: :desc).pluck(
-        :reactable_id, :id
-      ).to_h
+      @reading_list_article_ids ||= user.reactions.readinglist.where(status: status)   
+        .order(sort_order)
+        .pluck(
+          :reactable_id, :id
+        )
     end
 
     def search_ids
-      reading_list_article_ids.keys.map { |id| "article_#{id}" }
+      reading_list_article_ids.map { |id, _| "article_#{id}" }
     end
 
     def parse_and_order_articles(articles)
+
       # Combines reaction and article data to create hashes that contain the fields
       # the reading list view needs. Ensures articles are returned in order of reaction ID
       reading_list_article_ids.map do |article_id, reaction_id|

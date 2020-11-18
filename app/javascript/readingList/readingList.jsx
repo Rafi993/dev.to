@@ -84,6 +84,28 @@ export class ReadingList extends Component {
     window.history.replaceState(null, null, newPath);
   };
 
+  handleSort = (event) => {
+    event.preventDefault();
+    const { value } = event.target;
+
+    const { query, selectedTags, statusView } = this.state;
+
+    const newPath = `${window.location.origin}${window.location.pathname}?sort=${value}`;
+    // empty items so that changing the view will start from scratch
+    this.setState({ items: [] });
+
+    this.search(query, {
+      page: 0,
+      tags: selectedTags,
+      statusView,
+      sortBy: value,
+      sortDirection: 'desc',
+    });
+
+    // change path in the address bar
+    window.history.replaceState(null, null, newPath);
+  };
+
   toggleArchiveStatus = (event, item) => {
     event.preventDefault();
 
@@ -181,29 +203,41 @@ export class ReadingList extends Component {
     );
     return (
       <div>
-        <header className="crayons-layout flex justify-between items-center pb-0">
+        <header className="crayons-layout crayons-layout--2-cols pb-0">
           <h1 class="crayons-title">
             {isStatusViewValid ? 'Reading list' : 'Archive'}
             {` (${totalCount > 0 ? totalCount : '0'})`}
           </h1>
 
-          <div class="flex items-center">
-            <Button
-              onClick={(e) => this.toggleStatusView(e)}
-              className="mr-2 whitespace-nowrap"
-              variant="outlined"
-              url={READING_LIST_ARCHIVE_PATH}
-              tagName="a"
-              data-no-instant
+          <div class="flex justify-between items-center">
+            <div class="flex items-center">
+              <input
+                aria-label="Search..."
+                onKeyUp={this.onSearchBoxType}
+                placeholder="Search..."
+                className="crayons-textfield"
+              />
+              <Button
+                onClick={(e) => this.toggleStatusView(e)}
+                className="ml-2 whitespace-nowrap"
+                variant="outlined"
+                url={READING_LIST_ARCHIVE_PATH}
+                tagName="a"
+                data-no-instant
+              >
+                {isStatusViewValid ? 'View archive' : 'View reading list'}
+              </Button>
+            </div>
+            <select
+              name="sort"
+              class="crayons-select w-auto ml-2 my-1"
+              aria-label="Sort By"
+              onChange={this.handleSort}
+              onBlur={this.handleSort}
             >
-              {isStatusViewValid ? 'View archive' : 'View reading list'}
-            </Button>
-            <input
-              aria-label="Search..."
-              onKeyUp={this.onSearchBoxType}
-              placeholder="Search..."
-              className="crayons-textfield"
-            />
+              <option value="created_at">Recently Created</option>
+              <option value="id">Recently Bookmarked</option>
+            </select>
           </div>
         </header>
 
